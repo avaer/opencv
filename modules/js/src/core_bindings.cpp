@@ -501,8 +501,6 @@ void EMSCRIPTEN_KEEPALIVE doCv(int imageRows, int imageCols, int imageType, uint
     *descriptorData = (uint8_t *)malloc(queryDescriptors.total() * queryDescriptors.elemSize());
     *descriptorDataSize = queryDescriptors.total() * queryDescriptors.elemSize();
   }
-  
-  return emscripten::val::array();
 }
 
 EMSCRIPTEN_BINDINGS(binding_utils)
