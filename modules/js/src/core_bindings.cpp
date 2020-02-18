@@ -436,13 +436,13 @@ namespace binding_utils
 #endif
 }
 
-emscripten::val doCv(cv::Mat *inputImage, float *queryPoints, int *rows, int *cols, int *type, uint8_t *descriptorData) {
+emscripten::val doCv(cv::Mat *inputImage, int matchRows, int matchCols, int matchType, uint8_t *matchData, uint32_t matchDataSize, float **queryPoints, int *rows, int *cols, int *type, uint8_t **descriptorData, uint32_t *descriptorDataSize) {
   cv::Mat inputImage2;
   cv::cvtColor(*inputImage, inputImage2, cv::COLOR_RGBA2GRAY);
   cv::Mat inputImage3;
   cv::resize(inputImage2, inputImage3, cv::Size(512, (float)512 * (float)inputImage2.rows / (float)inputImage2.cols), 0, 0, cv::INTER_CUBIC);
-  
-  std::cout << "loop 8" << std::endl;
+
+  std::cout << "loop 7" << std::endl;
 
   std::vector<cv::KeyPoint> queryKeypoints;
   cv::Mat queryDescriptors;
@@ -452,10 +452,13 @@ emscripten::val doCv(cv::Mat *inputImage, float *queryPoints, int *rows, int *co
   detector->detectAndCompute( inputImage2, cv::noArray(), queryKeypoints, queryDescriptors );
   std::cout << "loop 11 " << feature.descriptors.rows << " " << feature.descriptors.cols << " " << feature.descriptors.total() << " " << feature.descriptors.elemSize() << " " << (feature.descriptors.total()*feature.descriptors.elemSize()) << std::endl;
   
+  cv::Mat matchDescriptors(matchRows, matchCols, matchType);
+  memcpy(matchDescriptors.data, matchData, matchDataSize);
+
   std::vector<cv::DMatch> matches;
-  if (queryDescriptors.cols == feature.descriptors.cols) {
+  if (queryDescriptors.cols == matchDescriptors.cols) {
     std::vector< std::vector<cv::DMatch> > knn_matches;
-    matcher->knnMatch( queryDescriptors, feature.descriptors, knn_matches, 2 );
+    matcher->knnMatch( queryDescriptors, matchDescriptors, knn_matches, 2 );
 
     const float ratio_thresh = 0.7f;
     for (size_t i = 0; i < knn_matches.size(); i++) {
@@ -466,15 +469,15 @@ emscripten::val doCv(cv::Mat *inputImage, float *queryPoints, int *rows, int *co
   }
 
   if (matches.size() > 0) {
-    std::cout << "matches yes " << queryDescriptors.cols << " " << feature.descriptors.cols << " " << matches.size() << std::endl;
+    std::cout << "matches yes " << queryDescriptors.cols << " " << matchDescriptors.cols << " " << matches.size() << std::endl;
   } else {
-    std::cout << "matches no " << queryDescriptors.cols << " " << feature.descriptors.cols << " " << matches.size() << std::endl;
+    std::cout << "matches no " << queryDescriptors.cols << " " << matchDescriptors.cols << " " << matches.size() << std::endl;
   }
 
   {
-    std::lock_guard<Mutex> lock(mut);
+    // std::lock_guard<Mutex> lock(mut);
 
-    std::vector<float> queryPoints(matches.size() * 3);
+    *queryPoints = (float *)malloc(matches.size() * 3);
     for (size_t i = 0; i < matches.size(); i++) {
       cv::DMatch &match = matches[i];
       int queryIdx = match.queryIdx;
@@ -497,13 +500,11 @@ emscripten::val doCv(cv::Mat *inputImage, float *queryPoints, int *rows, int *co
     }
     std::vector<unsigned char> inputImageJpg;
     cv::imencode(".jpg", inputImage, inputImageJpg);
-    feature = {
-      (uint32_t)inputImage.cols,
-      (uint32_t)inputImage.rows,
-      std::move(inputImageJpg),
-      std::move(queryDescriptors),
-      std::move(queryPoints),
-    };
+    *rows = inputImage.rows;
+    *cols = inputImage.cols;
+    *type = inputImage.type;
+    *descriptorData = malloc(inputImageJpg.total() * inputImageJpg.elemSize());
+    *descriptorDataSize = inputImageJpg.total() * inputImageJpg.elemSize();
   }
   
   return emscripten::val::array();
@@ -662,7 +663,7 @@ EMSCRIPTEN_BINDINGS(binding_utils)
         .field("size", &cv::RotatedRect::size)
         .field("angle", &cv::RotatedRect::angle);
 
-    function("doCv", select_overload<emscripten::val(cv::Mat *mat, float *queryPoints, int *rows, int *cols, int *type, uint8_t *descriptorData)>(&doCv));
+    function("doCv", select_overload<emscripten::val(cv::Mat *inputImage, int matchRows, int matchCols, int matchType, uint8_t *matchData, uint32_t matchDataSize, float **queryPoints, int *rows, int *cols, int *type, uint8_t **descriptorData, uint32_t *descriptorDataSize)>(&doCv));
 
     function("rotatedRectPoints", select_overload<emscripten::val(const cv::RotatedRect&)>(&binding_utils::rotatedRectPoints));
     function("rotatedRectBoundingRect", select_overload<Rect(const cv::RotatedRect&)>(&binding_utils::rotatedRectBoundingRect));
