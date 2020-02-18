@@ -432,10 +432,6 @@ emscripten::val doCv(cv::Mat *inputImage, float *queryPoints, int *rows, int *co
   cv::cvtColor(*inputImage, inputImage2, cv::COLOR_RGBA2GRAY);
   cv::Mat inputImage3;
   cv::resize(inputImage2, inputImage3, cv::Size(512, (float)512 * (float)inputImage2.rows / (float)inputImage2.cols), 0, 0, cv::INTER_CUBIC);
-
-  std::cout << "loop 7" << std::endl;
-
-  cvContext->Unmap(colorReadTex, 0);
   
   std::cout << "loop 8" << std::endl;
 
