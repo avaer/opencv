@@ -526,7 +526,7 @@ EMSCRIPTEN_KEEPALIVE void doCv(int imageRows, int imageCols, int imageType, uint
       *descriptorType = queryDescriptors.type();
       std::cout << "cv 8.3" << std::endl;
       *descriptorData = (uint8_t *)malloc(queryDescriptors.total() * queryDescriptors.elemSize());
-      std::cout << "cv 8.4" << std::endl;
+      std::cout << "cv 8.4 " << (void *)descriptorDataSize << " " << queryDescriptors.total() << " " << queryDescriptors.elemSize()<< std::endl;
       *descriptorDataSize = queryDescriptors.total() * queryDescriptors.elemSize();
       std::cout << "cv 8.5" << std::endl;
     }
