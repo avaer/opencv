@@ -436,10 +436,13 @@ namespace binding_utils
 #endif
 }
 
-emscripten::val doCv(cv::Mat *inputImage, int matchRows, int matchCols, int matchType, uint8_t *matchData, uint32_t matchDataSize, float **queryPoints, uint32_t *queryPointsSize, int *rows, int *cols, int *type, uint8_t **descriptorData, uint32_t *descriptorDataSize) {
+void EMSCRIPTEN_KEEPALIVE doCv(int imageRows, int imageCols, int imageType, uint8_t *imageData, uint32_t imageDataSize, int matchRows, int matchCols, int matchType, uint8_t *matchData, uint32_t matchDataSize, float **queryPoints, uint32_t *queryPointsSize, int *descriptorRows, int *descriptorCols, int *descriptorType, uint8_t **descriptorData, uint32_t *descriptorDataSize) {
   cv::Ptr<cv::ORB> orb = cv::ORB::create();
   cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
   
+  cv::Mat inputImage(imageRows, imageCols, imageType);
+  memcpy(inputImage.data, imageData, imageDataSize);
+
   cv::Mat inputImage2;
   cv::cvtColor(*inputImage, inputImage2, cv::COLOR_RGBA2GRAY);
   cv::Mat inputImage3;
@@ -491,9 +494,9 @@ emscripten::val doCv(cv::Mat *inputImage, int matchRows, int matchCols, int matc
     }
     *queryPointsSize = matches.size() * 2;
     
-    *rows = queryDescriptors.rows;
-    *cols = queryDescriptors.cols;
-    *type = queryDescriptors.type();
+    *descriptorRows = queryDescriptors.rows;
+    *descriptorCols = queryDescriptors.cols;
+    *descriptorType = queryDescriptors.type();
     *descriptorData = (uint8_t *)malloc(queryDescriptors.total() * queryDescriptors.elemSize());
     *descriptorDataSize = queryDescriptors.total() * queryDescriptors.elemSize();
   }
@@ -653,8 +656,6 @@ EMSCRIPTEN_BINDINGS(binding_utils)
         .field("center", &cv::RotatedRect::center)
         .field("size", &cv::RotatedRect::size)
         .field("angle", &cv::RotatedRect::angle);
-
-    function("doCv", select_overload<emscripten::val(cv::Mat *inputImage, int matchRows, int matchCols, int matchType, uint8_t *matchData, uint32_t matchDataSize, float **queryPoints, uint32_t *queryPointsSize, int *rows, int *cols, int *type, uint8_t **descriptorData, uint32_t *descriptorDataSize)>(&doCv), allow_raw_pointers());
 
     function("rotatedRectPoints", select_overload<emscripten::val(const cv::RotatedRect&)>(&binding_utils::rotatedRectPoints));
     function("rotatedRectBoundingRect", select_overload<Rect(const cv::RotatedRect&)>(&binding_utils::rotatedRectBoundingRect));
