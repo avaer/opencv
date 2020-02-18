@@ -437,6 +437,7 @@ namespace binding_utils
 #endif
 }
 
+extern "C" {
 EMSCRIPTEN_KEEPALIVE void *doMalloc(uint32_t size) {
   return malloc(size);
 }
@@ -507,6 +508,7 @@ EMSCRIPTEN_KEEPALIVE void doCv(int imageRows, int imageCols, int imageType, uint
     *descriptorData = (uint8_t *)malloc(queryDescriptors.total() * queryDescriptors.elemSize());
     *descriptorDataSize = queryDescriptors.total() * queryDescriptors.elemSize();
   }
+}
 }
 
 EMSCRIPTEN_BINDINGS(binding_utils)
