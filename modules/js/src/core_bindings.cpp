@@ -427,6 +427,83 @@ namespace binding_utils
 #endif
 }
 
+emscripten::val doCv(cv::Mat *mat, float *queryPoints, int *rows, int *cols, int *type, uint8_t *descriptorData) {
+  cv::Mat inputImage2;
+  cv::cvtColor(inputImage, inputImage2, cv::COLOR_RGBA2GRAY);
+  cv::Mat inputImage3;
+  cv::resize(inputImage2, inputImage3, cv::Size(512, (float)512 * (float)inputImage2.rows / (float)inputImage2.cols), 0, 0, cv::INTER_CUBIC);
+
+  // getOut() << "loop 7" << std::endl;
+
+  cvContext->Unmap(colorReadTex, 0);
+  
+  // getOut() << "loop 8" << std::endl;
+
+  std::vector<cv::KeyPoint> queryKeypoints;
+  cv::Mat queryDescriptors;
+
+  int minHessian = 400;
+  cv::Ptr<cv::xfeatures2d::SURF> detector = cv::xfeatures2d::SURF::create( minHessian );
+  detector->detectAndCompute( inputImage2, cv::noArray(), queryKeypoints, queryDescriptors );
+  // getOut() << "loop 11 " << feature.descriptors.rows << " " << feature.descriptors.cols << " " << feature.descriptors.total() << " " << feature.descriptors.elemSize() << " " << (feature.descriptors.total()*feature.descriptors.elemSize()) << std::endl;
+  
+  std::vector<cv::DMatch> matches;
+  if (queryDescriptors.cols == feature.descriptors.cols) {
+    std::vector< std::vector<cv::DMatch> > knn_matches;
+    matcher->knnMatch( queryDescriptors, feature.descriptors, knn_matches, 2 );
+
+    const float ratio_thresh = 0.7f;
+    for (size_t i = 0; i < knn_matches.size(); i++) {
+      if (knn_matches[i][0].distance < ratio_thresh * knn_matches[i][1].distance) {
+        matches.push_back(knn_matches[i][0]);
+      }
+    }
+  }
+
+  if (matches.size() > 0) {
+    getOut() << "matches yes " << queryDescriptors.cols << " " << feature.descriptors.cols << " " << matches.size() << std::endl;
+  } else {
+    getOut() << "matches no " << queryDescriptors.cols << " " << feature.descriptors.cols << " " << matches.size() << std::endl;
+  }
+
+  {
+    std::lock_guard<Mutex> lock(mut);
+
+    std::vector<float> queryPoints(matches.size() * 3);
+    for (size_t i = 0; i < matches.size(); i++) {
+      cv::DMatch &match = matches[i];
+      int queryIdx = match.queryIdx;
+      const cv::KeyPoint &keypoint = queryKeypoints[queryIdx];
+
+      float worldPoint[4] = {
+        (keypoint.pt.x/(float)eyeWidth) * 2.0f - 1.0f,
+        (1.0f-(keypoint.pt.y/(float)eyeHeight)) * 2.0f - 1.0f,
+        0.0f,
+        1.0f,
+      };
+      applyVector4Matrix(worldPoint, projectionMatrixInverse);
+      perspectiveDivideVector(worldPoint);
+      applyVector4Matrix(worldPoint, viewMatrixInverse);
+      applyVector4Matrix(worldPoint, stageMatrixInverse);
+
+      queryPoints[i*3] = worldPoint[0];
+      queryPoints[i*3+1] = worldPoint[1];
+      queryPoints[i*3+2] = worldPoint[2];
+    }
+    std::vector<unsigned char> inputImageJpg;
+    cv::imencode(".jpg", inputImage, inputImageJpg);
+    feature = {
+      (uint32_t)inputImage.cols,
+      (uint32_t)inputImage.rows,
+      std::move(inputImageJpg),
+      std::move(queryDescriptors),
+      std::move(queryPoints),
+    };
+  }
+  
+  return emscripten::val::array();
+}
+
 EMSCRIPTEN_BINDINGS(binding_utils)
 {
     register_vector<int>("IntVector");
@@ -579,6 +656,8 @@ EMSCRIPTEN_BINDINGS(binding_utils)
         .field("center", &cv::RotatedRect::center)
         .field("size", &cv::RotatedRect::size)
         .field("angle", &cv::RotatedRect::angle);
+
+    function("doCv", select_overload<emscripten::val(cv::Mat *mat, float *queryPoints, int *rows, int *cols, int *type, uint8_t *descriptorData)>(&doCv));
 
     function("rotatedRectPoints", select_overload<emscripten::val(const cv::RotatedRect&)>(&binding_utils::rotatedRectPoints));
     function("rotatedRectBoundingRect", select_overload<Rect(const cv::RotatedRect&)>(&binding_utils::rotatedRectBoundingRect));
