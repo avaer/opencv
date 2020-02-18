@@ -92,7 +92,7 @@ using namespace dnn;
 #endif
 
 #ifdef HAVE_OPENCV_ARUCO
-using namespace aruco;
+// using namespace aruco;
 #endif
 
 namespace binding_utils
