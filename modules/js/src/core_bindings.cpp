@@ -436,7 +436,7 @@ namespace binding_utils
 #endif
 }
 
-emscripten::val doCv(cv::Mat *inputImage, int matchRows, int matchCols, int matchType, uint8_t *matchData, uint32_t matchDataSize, float **queryPoints, int *rows, int *cols, int *type, uint8_t **descriptorData, uint32_t *descriptorDataSize) {
+emscripten::val doCv(cv::Mat *inputImage, int matchRows, int matchCols, int matchType, uint8_t *matchData, uint32_t matchDataSize, float **queryPoints, uint32_t *queryPointsSize, int *rows, int *cols, int *type, uint8_t **descriptorData, uint32_t *descriptorDataSize) {
   cv::Ptr<cv::ORB> orb = cv::ORB::create();
   cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
   
@@ -480,27 +480,17 @@ emscripten::val doCv(cv::Mat *inputImage, int matchRows, int matchCols, int matc
   {
     // std::lock_guard<Mutex> lock(mut);
 
-    *queryPoints = (float *)malloc(matches.size() * 3);
+    *queryPoints = (float *)malloc(matches.size() * 2);
     for (size_t i = 0; i < matches.size(); i++) {
       cv::DMatch &match = matches[i];
       int queryIdx = match.queryIdx;
       const cv::KeyPoint &keypoint = queryKeypoints[queryIdx];
 
-      float worldPoint[4] = {
-        (keypoint.pt.x/(float)eyeWidth) * 2.0f - 1.0f,
-        (1.0f-(keypoint.pt.y/(float)eyeHeight)) * 2.0f - 1.0f,
-        0.0f,
-        1.0f,
-      };
-      applyVector4Matrix(worldPoint, projectionMatrixInverse);
-      perspectiveDivideVector(worldPoint);
-      applyVector4Matrix(worldPoint, viewMatrixInverse);
-      applyVector4Matrix(worldPoint, stageMatrixInverse);
-
-      queryPoints[i*3] = worldPoint[0];
-      queryPoints[i*3+1] = worldPoint[1];
-      queryPoints[i*3+2] = worldPoint[2];
+      queryPoints[i*2] = keypoint.pt.x;
+      queryPoints[i*2+1] = keypoint.pt.y;
     }
+    *queryPointsSize = matches.size() * 2;
+    
     std::vector<unsigned char> inputImageJpg;
     cv::imencode(".jpg", inputImage, inputImageJpg);
     *rows = inputImage.rows;
@@ -666,7 +656,7 @@ EMSCRIPTEN_BINDINGS(binding_utils)
         .field("size", &cv::RotatedRect::size)
         .field("angle", &cv::RotatedRect::angle);
 
-    function("doCv", select_overload<emscripten::val(cv::Mat *inputImage, int matchRows, int matchCols, int matchType, uint8_t *matchData, uint32_t matchDataSize, float **queryPoints, int *rows, int *cols, int *type, uint8_t **descriptorData, uint32_t *descriptorDataSize)>(&doCv));
+    function("doCv", select_overload<emscripten::val(cv::Mat *inputImage, int matchRows, int matchCols, int matchType, uint8_t *matchData, uint32_t matchDataSize, float **queryPoints, uint32_t *queryPointsSize, int *rows, int *cols, int *type, uint8_t **descriptorData, uint32_t *descriptorDataSize)>(&doCv));
 
     function("rotatedRectPoints", select_overload<emscripten::val(const cv::RotatedRect&)>(&binding_utils::rotatedRectPoints));
     function("rotatedRectBoundingRect", select_overload<Rect(const cv::RotatedRect&)>(&binding_utils::rotatedRectBoundingRect));
