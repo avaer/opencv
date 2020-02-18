@@ -97,10 +97,10 @@ using namespace dnn;
 
 #include <iostream>
 
-#include "../../../modules/core/include/opencv2/core/core.hpp"
-#include "../../../modules/core/include/opencv2/imgcodecs.hpp"
-#include "../../../modules/core/include/opencv2/imgproc.hpp"
-#include "../../../modules/core/include/opencv2/features2d.hpp"
+// #include "../../../modules/core/include/opencv2/core/core.hpp"
+#include "../../../modules/imgcodecs/include/opencv2/imgcodecs.hpp"
+#include "../../../modules/imgcodecs/include/opencv2/imgproc.hpp"
+#include "../../../modules/core/features2d/opencv2/features2d.hpp"
 #include "../../../opencv_contrib/modules/xfeatures2d/include/opencv2/xfeatures2d.hpp"
 #include "../../../opencv_contrib/modules/xfeatures2d/include/opencv2/xfeatures2d/nonfree.hpp"
 
