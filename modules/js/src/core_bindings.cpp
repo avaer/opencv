@@ -517,13 +517,18 @@ EMSCRIPTEN_KEEPALIVE void doCv(int imageRows, int imageCols, int imageType, uint
       }
       *queryPointsSize = matches.size() * 2;
       
-      std::cout << "cv 8" << std::endl;
+      std::cout << "cv 8.0 " << sizeof(*descriptorRows) << std::endl;
       
       *descriptorRows = queryDescriptors.rows;
+      std::cout << "cv 8.1" << std::endl;
       *descriptorCols = queryDescriptors.cols;
+      std::cout << "cv 8.2" << std::endl;
       *descriptorType = queryDescriptors.type();
+      std::cout << "cv 8.3" << std::endl;
       *descriptorData = (uint8_t *)malloc(queryDescriptors.total() * queryDescriptors.elemSize());
+      std::cout << "cv 8.4" << std::endl;
       *descriptorDataSize = queryDescriptors.total() * queryDescriptors.elemSize();
+      std::cout << "cv 8.5" << std::endl;
     }
     
     std::cout << "cv 9" << std::endl;
