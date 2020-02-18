@@ -819,3 +819,6 @@ EMSCRIPTEN_BINDINGS(binding_utils)
     constant("INT_MIN", INT_MIN);
     constant("INT_MAX", INT_MAX);
 }
+
+// hack
+#include "../../../opencv_contrib/modules/xfeatures2d/src/surf.cpp"
