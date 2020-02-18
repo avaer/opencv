@@ -486,18 +486,16 @@ emscripten::val doCv(cv::Mat *inputImage, int matchRows, int matchCols, int matc
       int queryIdx = match.queryIdx;
       const cv::KeyPoint &keypoint = queryKeypoints[queryIdx];
 
-      queryPoints[i*2] = keypoint.pt.x;
-      queryPoints[i*2+1] = keypoint.pt.y;
+      (*queryPoints)[i*2] = keypoint.pt.x;
+      (*queryPoints)[i*2+1] = keypoint.pt.y;
     }
     *queryPointsSize = matches.size() * 2;
     
-    std::vector<unsigned char> inputImageJpg;
-    cv::imencode(".jpg", inputImage, inputImageJpg);
-    *rows = inputImage.rows;
-    *cols = inputImage.cols;
-    *type = inputImage.type;
-    *descriptorData = malloc(inputImageJpg.total() * inputImageJpg.elemSize());
-    *descriptorDataSize = inputImageJpg.total() * inputImageJpg.elemSize();
+    *rows = queryDescriptors.rows;
+    *cols = queryDescriptors.cols;
+    *type = queryDescriptors.type;
+    *descriptorData = (uint8_t *)malloc(queryDescriptors.total() * queryDescriptors.elemSize());
+    *descriptorDataSize = queryDescriptors.total() * queryDescriptors.elemSize();
   }
   
   return emscripten::val::array();
