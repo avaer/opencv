@@ -459,7 +459,7 @@ EMSCRIPTEN_KEEPALIVE void doCv(int imageRows, int imageCols, int imageType, uint
     cv::Mat inputImage3;
     cv::resize(inputImage2, inputImage3, cv::Size(512, (float)512 * (float)inputImage2.rows / (float)inputImage2.cols), 0, 0, cv::INTER_CUBIC);
 
-    std::cout << "cv 1" << std::endl;
+    std::cout << "cv 1 " << imageRows << " " << imageCols << " " << imageType << " " << imageDataSize << std::endl;
 
     std::vector<cv::KeyPoint> queryKeypoints;
     cv::Mat queryDescriptors;
@@ -468,8 +468,9 @@ EMSCRIPTEN_KEEPALIVE void doCv(int imageRows, int imageCols, int imageType, uint
 
     int minHessian = 400;
     cv::Ptr<cv::xfeatures2d::SURF> detector = cv::xfeatures2d::SURF::create( minHessian );
+    std::cout << "cv 3.1" << std::endl;
     detector->detectAndCompute( inputImage2, cv::noArray(), queryKeypoints, queryDescriptors );
-    std::cout << "cv 3" << std::endl;
+    std::cout << "cv 3.2" << std::endl;
     
     cv::Mat matchDescriptors(matchRows, matchCols, matchType);
     if (matchDataSize > 0) {
