@@ -445,7 +445,7 @@ void EMSCRIPTEN_KEEPALIVE doCv(int imageRows, int imageCols, int imageType, uint
   memcpy(inputImage.data, imageData, imageDataSize);
 
   cv::Mat inputImage2;
-  cv::cvtColor(*inputImage, inputImage2, cv::COLOR_RGBA2GRAY);
+  cv::cvtColor(inputImage, inputImage2, cv::COLOR_RGBA2GRAY);
   cv::Mat inputImage3;
   cv::resize(inputImage2, inputImage3, cv::Size(512, (float)512 * (float)inputImage2.rows / (float)inputImage2.cols), 0, 0, cv::INTER_CUBIC);
 
