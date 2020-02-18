@@ -449,27 +449,36 @@ EMSCRIPTEN_KEEPALIVE void doCv(int imageRows, int imageCols, int imageType, uint
   cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
   
   cv::Mat inputImage(imageRows, imageCols, imageType);
-  memcpy(inputImage.data, imageData, imageDataSize);
+  if (imageDataSize > 0) {
+    memcpy(inputImage.data, imageData, imageDataSize);
+  }
 
   cv::Mat inputImage2;
   cv::cvtColor(inputImage, inputImage2, cv::COLOR_RGBA2GRAY);
   cv::Mat inputImage3;
   cv::resize(inputImage2, inputImage3, cv::Size(512, (float)512 * (float)inputImage2.rows / (float)inputImage2.cols), 0, 0, cv::INTER_CUBIC);
 
-  std::cout << "loop 7" << std::endl;
+  std::cout << "cv 1" << std::endl;
 
   std::vector<cv::KeyPoint> queryKeypoints;
   cv::Mat queryDescriptors;
+  
+  std::cout << "cv 2" << std::endl;
 
   int minHessian = 400;
   cv::Ptr<cv::xfeatures2d::SURF> detector = cv::xfeatures2d::SURF::create( minHessian );
   detector->detectAndCompute( inputImage2, cv::noArray(), queryKeypoints, queryDescriptors );
-  // std::cout << "loop 11 " << feature.descriptors.rows << " " << feature.descriptors.cols << " " << feature.descriptors.total() << " " << feature.descriptors.elemSize() << " " << (feature.descriptors.total()*feature.descriptors.elemSize()) << std::endl;
+  std::cout << "cv 3" << std::endl;
   
   cv::Mat matchDescriptors(matchRows, matchCols, matchType);
-  memcpy(matchDescriptors.data, matchData, matchDataSize);
+  if (matchDataSize > 0) {
+    memcpy(matchDescriptors.data, matchData, matchDataSize);
+  }
+
+  std::cout << "cv 4" << std::endl;
 
   std::vector<cv::DMatch> matches;
+  std::cout << "cv 5 " << queryDescriptors.cols << " " << matchDescriptors.cols << std::endl;
   if (queryDescriptors.cols == matchDescriptors.cols) {
     std::vector< std::vector<cv::DMatch> > knn_matches;
     matcher->knnMatch( queryDescriptors, matchDescriptors, knn_matches, 2 );
@@ -481,12 +490,16 @@ EMSCRIPTEN_KEEPALIVE void doCv(int imageRows, int imageCols, int imageType, uint
       }
     }
   }
+  
+  std::cout << "cv 6" << std::endl;
 
   if (matches.size() > 0) {
     std::cout << "matches yes " << queryDescriptors.cols << " " << matchDescriptors.cols << " " << matches.size() << std::endl;
   } else {
     std::cout << "matches no " << queryDescriptors.cols << " " << matchDescriptors.cols << " " << matches.size() << std::endl;
   }
+  
+  std::cout << "cv 7" << std::endl;
 
   {
     // std::lock_guard<Mutex> lock(mut);
@@ -502,12 +515,16 @@ EMSCRIPTEN_KEEPALIVE void doCv(int imageRows, int imageCols, int imageType, uint
     }
     *queryPointsSize = matches.size() * 2;
     
+    std::cout << "cv 8" << std::endl;
+    
     *descriptorRows = queryDescriptors.rows;
     *descriptorCols = queryDescriptors.cols;
     *descriptorType = queryDescriptors.type();
     *descriptorData = (uint8_t *)malloc(queryDescriptors.total() * queryDescriptors.elemSize());
     *descriptorDataSize = queryDescriptors.total() * queryDescriptors.elemSize();
   }
+  
+  std::cout << "cv 9" << std::endl;
 }
 }
 
