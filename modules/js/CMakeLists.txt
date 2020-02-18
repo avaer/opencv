@@ -94,6 +94,9 @@ else()
   ocv_add_executable(${the_module} ${bindings_cpp})
 endif()
 
+# hack
+ocv_module_include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../../opencv_contrib/modules/xfeatures2d/include")
+
 set(COMPILE_FLAGS "")
 if(NOT CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     set(COMPILE_FLAGS "${COMPILE_FLAGS} -Wno-missing-prototypes")
