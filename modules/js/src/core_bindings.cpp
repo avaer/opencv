@@ -427,17 +427,17 @@ namespace binding_utils
 #endif
 }
 
-emscripten::val doCv(cv::Mat *mat, float *queryPoints, int *rows, int *cols, int *type, uint8_t *descriptorData) {
+emscripten::val doCv(cv::Mat *inputImage, float *queryPoints, int *rows, int *cols, int *type, uint8_t *descriptorData) {
   cv::Mat inputImage2;
-  cv::cvtColor(inputImage, inputImage2, cv::COLOR_RGBA2GRAY);
+  cv::cvtColor(*inputImage, inputImage2, cv::COLOR_RGBA2GRAY);
   cv::Mat inputImage3;
   cv::resize(inputImage2, inputImage3, cv::Size(512, (float)512 * (float)inputImage2.rows / (float)inputImage2.cols), 0, 0, cv::INTER_CUBIC);
 
-  // getOut() << "loop 7" << std::endl;
+  std::cout << "loop 7" << std::endl;
 
   cvContext->Unmap(colorReadTex, 0);
   
-  // getOut() << "loop 8" << std::endl;
+  std::cout << "loop 8" << std::endl;
 
   std::vector<cv::KeyPoint> queryKeypoints;
   cv::Mat queryDescriptors;
@@ -445,7 +445,7 @@ emscripten::val doCv(cv::Mat *mat, float *queryPoints, int *rows, int *cols, int
   int minHessian = 400;
   cv::Ptr<cv::xfeatures2d::SURF> detector = cv::xfeatures2d::SURF::create( minHessian );
   detector->detectAndCompute( inputImage2, cv::noArray(), queryKeypoints, queryDescriptors );
-  // getOut() << "loop 11 " << feature.descriptors.rows << " " << feature.descriptors.cols << " " << feature.descriptors.total() << " " << feature.descriptors.elemSize() << " " << (feature.descriptors.total()*feature.descriptors.elemSize()) << std::endl;
+  std::cout << "loop 11 " << feature.descriptors.rows << " " << feature.descriptors.cols << " " << feature.descriptors.total() << " " << feature.descriptors.elemSize() << " " << (feature.descriptors.total()*feature.descriptors.elemSize()) << std::endl;
   
   std::vector<cv::DMatch> matches;
   if (queryDescriptors.cols == feature.descriptors.cols) {
@@ -461,9 +461,9 @@ emscripten::val doCv(cv::Mat *mat, float *queryPoints, int *rows, int *cols, int
   }
 
   if (matches.size() > 0) {
-    getOut() << "matches yes " << queryDescriptors.cols << " " << feature.descriptors.cols << " " << matches.size() << std::endl;
+    std::cout << "matches yes " << queryDescriptors.cols << " " << feature.descriptors.cols << " " << matches.size() << std::endl;
   } else {
-    getOut() << "matches no " << queryDescriptors.cols << " " << feature.descriptors.cols << " " << matches.size() << std::endl;
+    std::cout << "matches no " << queryDescriptors.cols << " " << feature.descriptors.cols << " " << matches.size() << std::endl;
   }
 
   {
