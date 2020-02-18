@@ -437,6 +437,9 @@ namespace binding_utils
 }
 
 emscripten::val doCv(cv::Mat *inputImage, int matchRows, int matchCols, int matchType, uint8_t *matchData, uint32_t matchDataSize, float **queryPoints, int *rows, int *cols, int *type, uint8_t **descriptorData, uint32_t *descriptorDataSize) {
+  cv::Ptr<cv::ORB> orb = cv::ORB::create();
+  cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
+  
   cv::Mat inputImage2;
   cv::cvtColor(*inputImage, inputImage2, cv::COLOR_RGBA2GRAY);
   cv::Mat inputImage3;
@@ -450,7 +453,7 @@ emscripten::val doCv(cv::Mat *inputImage, int matchRows, int matchCols, int matc
   int minHessian = 400;
   cv::Ptr<cv::xfeatures2d::SURF> detector = cv::xfeatures2d::SURF::create( minHessian );
   detector->detectAndCompute( inputImage2, cv::noArray(), queryKeypoints, queryDescriptors );
-  std::cout << "loop 11 " << feature.descriptors.rows << " " << feature.descriptors.cols << " " << feature.descriptors.total() << " " << feature.descriptors.elemSize() << " " << (feature.descriptors.total()*feature.descriptors.elemSize()) << std::endl;
+  // std::cout << "loop 11 " << feature.descriptors.rows << " " << feature.descriptors.cols << " " << feature.descriptors.total() << " " << feature.descriptors.elemSize() << " " << (feature.descriptors.total()*feature.descriptors.elemSize()) << std::endl;
   
   cv::Mat matchDescriptors(matchRows, matchCols, matchType);
   memcpy(matchDescriptors.data, matchData, matchDataSize);
