@@ -445,86 +445,90 @@ EMSCRIPTEN_KEEPALIVE void doFree(void *p) {
   free(p);
 }
 EMSCRIPTEN_KEEPALIVE void doCv(int imageRows, int imageCols, int imageType, uint8_t *imageData, uint32_t imageDataSize, int matchRows, int matchCols, int matchType, uint8_t *matchData, uint32_t matchDataSize, float **queryPoints, uint32_t *queryPointsSize, int *descriptorRows, int *descriptorCols, int *descriptorType, uint8_t **descriptorData, uint32_t *descriptorDataSize) {
-  cv::Ptr<cv::ORB> orb = cv::ORB::create();
-  cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
-  
-  cv::Mat inputImage(imageRows, imageCols, imageType);
-  if (imageDataSize > 0) {
-    memcpy(inputImage.data, imageData, imageDataSize);
-  }
+  try {
+    cv::Ptr<cv::ORB> orb = cv::ORB::create();
+    cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
+    
+    cv::Mat inputImage(imageRows, imageCols, imageType);
+    if (imageDataSize > 0) {
+      memcpy(inputImage.data, imageData, imageDataSize);
+    }
 
-  cv::Mat inputImage2;
-  cv::cvtColor(inputImage, inputImage2, cv::COLOR_RGBA2GRAY);
-  cv::Mat inputImage3;
-  cv::resize(inputImage2, inputImage3, cv::Size(512, (float)512 * (float)inputImage2.rows / (float)inputImage2.cols), 0, 0, cv::INTER_CUBIC);
+    cv::Mat inputImage2;
+    cv::cvtColor(inputImage, inputImage2, cv::COLOR_RGBA2GRAY);
+    cv::Mat inputImage3;
+    cv::resize(inputImage2, inputImage3, cv::Size(512, (float)512 * (float)inputImage2.rows / (float)inputImage2.cols), 0, 0, cv::INTER_CUBIC);
 
-  std::cout << "cv 1" << std::endl;
+    std::cout << "cv 1" << std::endl;
 
-  std::vector<cv::KeyPoint> queryKeypoints;
-  cv::Mat queryDescriptors;
-  
-  std::cout << "cv 2" << std::endl;
+    std::vector<cv::KeyPoint> queryKeypoints;
+    cv::Mat queryDescriptors;
+    
+    std::cout << "cv 2" << std::endl;
 
-  int minHessian = 400;
-  cv::Ptr<cv::xfeatures2d::SURF> detector = cv::xfeatures2d::SURF::create( minHessian );
-  detector->detectAndCompute( inputImage2, cv::noArray(), queryKeypoints, queryDescriptors );
-  std::cout << "cv 3" << std::endl;
-  
-  cv::Mat matchDescriptors(matchRows, matchCols, matchType);
-  if (matchDataSize > 0) {
-    memcpy(matchDescriptors.data, matchData, matchDataSize);
-  }
+    int minHessian = 400;
+    cv::Ptr<cv::xfeatures2d::SURF> detector = cv::xfeatures2d::SURF::create( minHessian );
+    detector->detectAndCompute( inputImage2, cv::noArray(), queryKeypoints, queryDescriptors );
+    std::cout << "cv 3" << std::endl;
+    
+    cv::Mat matchDescriptors(matchRows, matchCols, matchType);
+    if (matchDataSize > 0) {
+      memcpy(matchDescriptors.data, matchData, matchDataSize);
+    }
 
-  std::cout << "cv 4" << std::endl;
+    std::cout << "cv 4" << std::endl;
 
-  std::vector<cv::DMatch> matches;
-  std::cout << "cv 5 " << queryDescriptors.cols << " " << matchDescriptors.cols << std::endl;
-  if (queryDescriptors.cols == matchDescriptors.cols) {
-    std::vector< std::vector<cv::DMatch> > knn_matches;
-    matcher->knnMatch( queryDescriptors, matchDescriptors, knn_matches, 2 );
+    std::vector<cv::DMatch> matches;
+    std::cout << "cv 5 " << queryDescriptors.cols << " " << matchDescriptors.cols << std::endl;
+    if (queryDescriptors.cols == matchDescriptors.cols) {
+      std::vector< std::vector<cv::DMatch> > knn_matches;
+      matcher->knnMatch( queryDescriptors, matchDescriptors, knn_matches, 2 );
 
-    const float ratio_thresh = 0.7f;
-    for (size_t i = 0; i < knn_matches.size(); i++) {
-      if (knn_matches[i][0].distance < ratio_thresh * knn_matches[i][1].distance) {
-        matches.push_back(knn_matches[i][0]);
+      const float ratio_thresh = 0.7f;
+      for (size_t i = 0; i < knn_matches.size(); i++) {
+        if (knn_matches[i][0].distance < ratio_thresh * knn_matches[i][1].distance) {
+          matches.push_back(knn_matches[i][0]);
+        }
       }
     }
-  }
-  
-  std::cout << "cv 6" << std::endl;
+    
+    std::cout << "cv 6" << std::endl;
 
-  if (matches.size() > 0) {
-    std::cout << "matches yes " << queryDescriptors.cols << " " << matchDescriptors.cols << " " << matches.size() << std::endl;
-  } else {
-    std::cout << "matches no " << queryDescriptors.cols << " " << matchDescriptors.cols << " " << matches.size() << std::endl;
-  }
-  
-  std::cout << "cv 7" << std::endl;
-
-  {
-    // std::lock_guard<Mutex> lock(mut);
-
-    *queryPoints = (float *)malloc(matches.size() * 2);
-    for (size_t i = 0; i < matches.size(); i++) {
-      cv::DMatch &match = matches[i];
-      int queryIdx = match.queryIdx;
-      const cv::KeyPoint &keypoint = queryKeypoints[queryIdx];
-
-      (*queryPoints)[i*2] = keypoint.pt.x;
-      (*queryPoints)[i*2+1] = keypoint.pt.y;
+    if (matches.size() > 0) {
+      std::cout << "matches yes " << queryDescriptors.cols << " " << matchDescriptors.cols << " " << matches.size() << std::endl;
+    } else {
+      std::cout << "matches no " << queryDescriptors.cols << " " << matchDescriptors.cols << " " << matches.size() << std::endl;
     }
-    *queryPointsSize = matches.size() * 2;
     
-    std::cout << "cv 8" << std::endl;
+    std::cout << "cv 7" << std::endl;
+
+    {
+      // std::lock_guard<Mutex> lock(mut);
+
+      *queryPoints = (float *)malloc(matches.size() * 2);
+      for (size_t i = 0; i < matches.size(); i++) {
+        cv::DMatch &match = matches[i];
+        int queryIdx = match.queryIdx;
+        const cv::KeyPoint &keypoint = queryKeypoints[queryIdx];
+
+        (*queryPoints)[i*2] = keypoint.pt.x;
+        (*queryPoints)[i*2+1] = keypoint.pt.y;
+      }
+      *queryPointsSize = matches.size() * 2;
+      
+      std::cout << "cv 8" << std::endl;
+      
+      *descriptorRows = queryDescriptors.rows;
+      *descriptorCols = queryDescriptors.cols;
+      *descriptorType = queryDescriptors.type();
+      *descriptorData = (uint8_t *)malloc(queryDescriptors.total() * queryDescriptors.elemSize());
+      *descriptorDataSize = queryDescriptors.total() * queryDescriptors.elemSize();
+    }
     
-    *descriptorRows = queryDescriptors.rows;
-    *descriptorCols = queryDescriptors.cols;
-    *descriptorType = queryDescriptors.type();
-    *descriptorData = (uint8_t *)malloc(queryDescriptors.total() * queryDescriptors.elemSize());
-    *descriptorDataSize = queryDescriptors.total() * queryDescriptors.elemSize();
+    std::cout << "cv 9" << std::endl;
+  } catch(cv::Exception& e) {
+    std::cout << "exception caught: " << e.what() << std::endl;
   }
-  
-  std::cout << "cv 9" << std::endl;
 }
 }
 
