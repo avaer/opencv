@@ -437,7 +437,13 @@ namespace binding_utils
 #endif
 }
 
-void EMSCRIPTEN_KEEPALIVE doCv(int imageRows, int imageCols, int imageType, uint8_t *imageData, uint32_t imageDataSize, int matchRows, int matchCols, int matchType, uint8_t *matchData, uint32_t matchDataSize, float **queryPoints, uint32_t *queryPointsSize, int *descriptorRows, int *descriptorCols, int *descriptorType, uint8_t **descriptorData, uint32_t *descriptorDataSize) {
+EMSCRIPTEN_KEEPALIVE void *doMalloc(uint32_t size) {
+  return malloc(size);
+}
+EMSCRIPTEN_KEEPALIVE void doFree(void *p) {
+  free(p);
+}
+EMSCRIPTEN_KEEPALIVE void doCv(int imageRows, int imageCols, int imageType, uint8_t *imageData, uint32_t imageDataSize, int matchRows, int matchCols, int matchType, uint8_t *matchData, uint32_t matchDataSize, float **queryPoints, uint32_t *queryPointsSize, int *descriptorRows, int *descriptorCols, int *descriptorType, uint8_t **descriptorData, uint32_t *descriptorDataSize) {
   cv::Ptr<cv::ORB> orb = cv::ORB::create();
   cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
   
