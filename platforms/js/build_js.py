@@ -78,7 +78,6 @@ class Builder:
 
     def get_cmake_cmd(self):
         cmd = ["cmake",
-               "-DOPENCV_EXTRA_MODULES_PATH=/home/a/opencv/opencv_contrib/modules",
                "-DENABLE_PIC=FALSE", # To workaround emscripten upstream backend issue https://github.com/emscripten-core/emscripten/issues/8761
                "-DCMAKE_BUILD_TYPE=Release",
                "-DCMAKE_TOOLCHAIN_FILE='%s'" % self.get_toolchain_file(),
@@ -140,7 +139,10 @@ class Builder:
                "-DBUILD_EXAMPLES=OFF",
                "-DBUILD_PACKAGE=OFF",
                "-DBUILD_TESTS=OFF",
-               "-DBUILD_PERF_TESTS=OFF"]
+               "-DBUILD_PERF_TESTS=OFF",
+               "-DOPENCV_EXTRA_MODULES_PATH=/home/a/opencv/opencv_contrib/modules",
+               "-DOPENCV_ENABLE_NONFREE=ON"
+               ]
         if self.options.cmake_option:
             cmd += self.options.cmake_option
         if self.options.build_doc:
