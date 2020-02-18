@@ -95,6 +95,8 @@ using namespace dnn;
 // using namespace aruco;
 #endif
 
+#include <iostream>
+
 namespace binding_utils
 {
     template<typename classT, typename enumT>
