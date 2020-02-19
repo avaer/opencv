@@ -497,11 +497,11 @@ EMSCRIPTEN_KEEPALIVE void doComputeCvFeatures(int imageRows, int imageCols, int 
   }
   std::cout << "cv 10" << std::endl;
 }
-EMSCRIPTEN_KEEPALIVE void doMatchCvFeatures(int queryRows, int queryCols, int queryType, uint8_t *queryData, int trainRows, int trainCols, int trainType, uint8_t *trainData, uint32_t trainDataSize, uint32_t **matchIndices, uint32_t *matchIndicesSize) {
+EMSCRIPTEN_KEEPALIVE void doMatchCvFeatures(int queryRows, int queryCols, int queryType, uint8_t *queryData, uint32_t queryDataSize, int trainRows, int trainCols, int trainType, uint8_t *trainData, uint32_t trainDataSize, uint32_t **matchIndices, uint32_t *matchIndicesSize) {
   try {
     cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
 
-    std::cout << "cv 1 " << imageRows << " " << imageCols << " " << imageType << " " << imageDataSize << std::endl;
+    std::cout << "cv 1 " << queryRows << " " << queryCols << " " << queryType << " " << queryDataSize << " " << trainRows << " " << trainCols << " " << trainType << " " << trainDataSize << std::endl;
 
     std::vector<cv::KeyPoint> queryKeypoints;
     
