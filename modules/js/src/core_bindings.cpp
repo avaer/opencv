@@ -546,11 +546,12 @@ EMSCRIPTEN_KEEPALIVE void doMatchCvFeatures(int queryRows, int queryCols, int qu
     }
     
     {
-      *matchIndices = (uint32_t *)malloc(matches.size() * sizeof(uint32_t));
+      *matchIndices = (uint32_t *)malloc(matches.size() * 2 * sizeof(uint32_t));
       for (size_t i = 0; i < matches.size(); i++) {
-        (*matchIndices)[i] = matches[i].queryIdx;
+        (*matchIndices)[i*2] = matches[i].queryIdx;
+        (*matchIndices)[i*2+1] = matches[i].trainIdx;
       }
-      *matchIndicesSize = matches.size() * sizeof(uint32_t);
+      *matchIndicesSize = matches.size() * 2 * sizeof(uint32_t);
     }
     
     std::cout << "cv 7" << std::endl;
