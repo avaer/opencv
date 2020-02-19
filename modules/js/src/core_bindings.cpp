@@ -538,6 +538,7 @@ EMSCRIPTEN_KEEPALIVE void doCv(int imageRows, int imageCols, int imageType, uint
   } catch(cv::Exception& e) {
     std::cout << "exception caught: " << e.what() << std::endl;
   }
+  std::cout << "cv 10" << std::endl;
 }
 }
 
