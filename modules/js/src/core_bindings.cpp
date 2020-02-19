@@ -473,7 +473,11 @@ EMSCRIPTEN_KEEPALIVE void doComputeCvFeatures(int imageRows, int imageCols, int 
 
     {
       *queryPoints = (float *)malloc(queryKeypoints.size() * 2 * sizeof(float));
-      memcpy(*queryPoints, queryKeypoints.data(), queryKeypoints.size() * 2 * sizeof(float));
+      for (size_t i = 0; i < queryKeypoints.size(); i++) {
+        const cv::KeyPoint &keypoint = queryKeypoints[i];
+        (*queryPoints)[i*2] = keypoint.pt.x;
+        (*queryPoints)[i*2+1] = keypoint.pt.y;
+      }
       *queryPointsSize = queryKeypoints.size() * 2 * sizeof(float);
 
       *descriptorRows = queryDescriptors.rows;
