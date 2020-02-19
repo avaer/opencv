@@ -539,6 +539,9 @@ EMSCRIPTEN_KEEPALIVE void doMatchCvFeatures(int queryRows, int queryCols, int qu
         }
       }
     }
+    std::sort(matches.begin(), matches.end(), [](const cv::DMatch &a, const cv::DMatch &b) {
+      return a.distance < b.distance;
+    });
     
     std::cout << "cv 6" << std::endl;
 
