@@ -444,7 +444,7 @@ EMSCRIPTEN_KEEPALIVE void *doMalloc(uint32_t size) {
 EMSCRIPTEN_KEEPALIVE void doFree(void *p) {
   free(p);
 }
-EMSCRIPTEN_KEEPALIVE void doComputeCvFeatures(int imageRows, int imageCols, int imageType, uint8_t *imageData, uint32_t imageDataSize, float **queryPoints, uint32_t *queryPointsSize, int *descriptorRows, int *descriptorCols, int *descriptorType, uint8_t **descriptorData, uint32_t *descriptorDataSize) {
+EMSCRIPTEN_KEEPALIVE void doComputeCvFeatures(int imageRows, int imageCols, int imageType, uint8_t *imageData, uint32_t imageDataSize, float **queryPoints, uint32_t *queryPointsSize, int *descriptorRows, int *descriptorCols, int *descriptorType, uint8_t **descriptorData, uint32_t *descriptorDataSize, int minHessian) {
   try {
     cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
     
@@ -465,7 +465,6 @@ EMSCRIPTEN_KEEPALIVE void doComputeCvFeatures(int imageRows, int imageCols, int 
     
     std::cout << "cv 2" << std::endl;
 
-    int minHessian = 400;
     cv::Ptr<cv::xfeatures2d::SURF> detector = cv::xfeatures2d::SURF::create(minHessian);
     std::cout << "cv 3.1" << std::endl;
     detector->detectAndCompute(inputImage, cv::noArray(), queryKeypoints, queryDescriptors);
