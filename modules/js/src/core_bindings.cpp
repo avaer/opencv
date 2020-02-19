@@ -444,9 +444,8 @@ EMSCRIPTEN_KEEPALIVE void *doMalloc(uint32_t size) {
 EMSCRIPTEN_KEEPALIVE void doFree(void *p) {
   free(p);
 }
-EMSCRIPTEN_KEEPALIVE void doCv(int imageRows, int imageCols, int imageType, uint8_t *imageData, uint32_t imageDataSize, int matchRows, int matchCols, int matchType, uint8_t *matchData, uint32_t matchDataSize, float **queryPoints, uint32_t *queryPointsSize, int *descriptorRows, int *descriptorCols, int *descriptorType, uint8_t **descriptorData, uint32_t *descriptorDataSize) {
+EMSCRIPTEN_KEEPALIVE void doComputeCvFeatures(int imageRows, int imageCols, int imageType, uint8_t *imageData, uint32_t imageDataSize, float **queryPoints, uint32_t *queryPointsSize, int *descriptorRows, int *descriptorCols, int *descriptorType, uint8_t **descriptorData, uint32_t *descriptorDataSize) {
   try {
-    cv::Ptr<cv::ORB> orb = cv::ORB::create();
     cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
     
     cv::Mat inputImage(imageRows, imageCols, imageType);
@@ -467,58 +466,16 @@ EMSCRIPTEN_KEEPALIVE void doCv(int imageRows, int imageCols, int imageType, uint
     std::cout << "cv 2" << std::endl;
 
     int minHessian = 400;
-    cv::Ptr<cv::xfeatures2d::SURF> detector = cv::xfeatures2d::SURF::create( minHessian );
+    cv::Ptr<cv::xfeatures2d::SURF> detector = cv::xfeatures2d::SURF::create(minHessian);
     std::cout << "cv 3.1" << std::endl;
     detector->detectAndCompute( inputImage2, cv::noArray(), queryKeypoints, queryDescriptors );
-    std::cout << "cv 3.2" << std::endl;
-    
-    cv::Mat matchDescriptors(matchRows, matchCols, matchType);
-    if (matchDataSize > 0) {
-      memcpy(matchDescriptors.data, matchData, matchDataSize);
-    }
-
-    std::cout << "cv 4" << std::endl;
-
-    std::vector<cv::DMatch> matches;
-    std::cout << "cv 5 " << queryDescriptors.cols << " " << matchDescriptors.cols << std::endl;
-    if (queryDescriptors.cols == matchDescriptors.cols) {
-      std::vector< std::vector<cv::DMatch> > knn_matches;
-      matcher->knnMatch( queryDescriptors, matchDescriptors, knn_matches, 2 );
-
-      const float ratio_thresh = 0.7f;
-      for (size_t i = 0; i < knn_matches.size(); i++) {
-        if (knn_matches[i][0].distance < ratio_thresh * knn_matches[i][1].distance) {
-          matches.push_back(knn_matches[i][0]);
-        }
-      }
-    }
-    
-    std::cout << "cv 6" << std::endl;
-
-    if (matches.size() > 0) {
-      std::cout << "matches yes " << queryDescriptors.cols << " " << matchDescriptors.cols << " " << matches.size() << std::endl;
-    } else {
-      std::cout << "matches no " << queryDescriptors.cols << " " << matchDescriptors.cols << " " << matches.size() << std::endl;
-    }
-    
-    std::cout << "cv 7" << std::endl;
+    std::cout << "cv 3.2" << std::endl; 
 
     {
-      // std::lock_guard<Mutex> lock(mut);
+      *queryPoints = (float *)malloc(queryKeypoints.size() * 2 * sizeof(float));
+      memcpy(*queryPoints, queryKeypoints.data(), queryKeypoints.size() * 2 * sizeof(float));
+      *queryPointsSize = queryKeypoints.size() * 2 * sizeof(float);
 
-      *queryPoints = (float *)malloc(matches.size() * 2);
-      for (size_t i = 0; i < matches.size(); i++) {
-        cv::DMatch &match = matches[i];
-        int queryIdx = match.queryIdx;
-        const cv::KeyPoint &keypoint = queryKeypoints[queryIdx];
-
-        (*queryPoints)[i*2] = keypoint.pt.x;
-        (*queryPoints)[i*2+1] = keypoint.pt.y;
-      }
-      *queryPointsSize = matches.size() * 2;
-      
-      std::cout << "cv 8.0 " << (matches.size() * 2) << std::endl;
-      
       *descriptorRows = queryDescriptors.rows;
       std::cout << "cv 8.1" << std::endl;
       *descriptorCols = queryDescriptors.cols;
@@ -535,6 +492,64 @@ EMSCRIPTEN_KEEPALIVE void doCv(int imageRows, int imageCols, int imageType, uint
     }
     
     std::cout << "cv 9" << std::endl;
+  } catch(cv::Exception& e) {
+    std::cout << "exception caught: " << e.what() << std::endl;
+  }
+  std::cout << "cv 10" << std::endl;
+}
+EMSCRIPTEN_KEEPALIVE void doMatchCvFeatures(int queryRows, int queryCols, int queryType, uint8_t *queryData, int trainRows, int trainCols, int trainType, uint8_t *trainData, uint32_t trainDataSize, uint32_t **matchIndices, uint32_t *matchIndicesSize) {
+  try {
+    cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
+
+    std::cout << "cv 1 " << imageRows << " " << imageCols << " " << imageType << " " << imageDataSize << std::endl;
+
+    std::vector<cv::KeyPoint> queryKeypoints;
+    
+    std::cout << "cv 2" << std::endl;
+    
+    cv::Mat queryDescriptors(queryRows, queryCols, queryType);
+    if (queryDataSize > 0) {
+      memcpy(queryDescriptors.data, queryData, queryDataSize);
+    }
+    
+    cv::Mat trainDescriptors(trainRows, trainCols, trainType);
+    if (trainDataSize > 0) {
+      memcpy(trainDescriptors.data, trainData, trainDataSize);
+    }
+
+    std::cout << "cv 4" << std::endl;
+
+    std::vector<cv::DMatch> matches;
+    std::cout << "cv 5 " << queryDescriptors.cols << " " << trainDescriptors.cols << std::endl;
+    if (queryDescriptors.cols == trainDescriptors.cols) {
+      std::vector< std::vector<cv::DMatch> > knn_matches;
+      matcher->knnMatch(queryDescriptors, trainDescriptors, knn_matches, 2);
+
+      const float ratio_thresh = 0.7f;
+      for (size_t i = 0; i < knn_matches.size(); i++) {
+        if (knn_matches[i][0].distance < ratio_thresh * knn_matches[i][1].distance) {
+          matches.push_back(knn_matches[i][0]);
+        }
+      }
+    }
+    
+    std::cout << "cv 6" << std::endl;
+
+    if (matches.size() > 0) {
+      std::cout << "matches yes " << queryDescriptors.cols << " " << trainDescriptors.cols << " " << matches.size() << std::endl;
+    } else {
+      std::cout << "matches no " << queryDescriptors.cols << " " << trainDescriptors.cols << " " << matches.size() << std::endl;
+    }
+    
+    {
+      *matchIndices = (float *)malloc(matches.size() * sizeof(uint32_t));
+      for (int i = 0; i < matches.size(); i++) {
+        (*matchIndices)[i] = matches[i].queryIdx;
+      }
+      *matchIndicesSize = matches.size() * sizeof(uint32_t);
+    }
+    
+    std::cout << "cv 7" << std::endl;
   } catch(cv::Exception& e) {
     std::cout << "exception caught: " << e.what() << std::endl;
   }
