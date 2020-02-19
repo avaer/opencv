@@ -517,7 +517,7 @@ EMSCRIPTEN_KEEPALIVE void doCv(int imageRows, int imageCols, int imageType, uint
       }
       *queryPointsSize = matches.size() * 2;
       
-      std::cout << "cv 8.0 " << sizeof(*descriptorRows) << std::endl;
+      std::cout << "cv 8.0 " << (matches.size() * 2) << std::endl;
       
       *descriptorRows = queryDescriptors.rows;
       std::cout << "cv 8.1" << std::endl;
