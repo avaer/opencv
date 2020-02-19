@@ -503,7 +503,11 @@ EMSCRIPTEN_KEEPALIVE void doComputeCvFeatures(int imageRows, int imageCols, int 
 }
 EMSCRIPTEN_KEEPALIVE void doMatchCvFeatures(int queryRows, int queryCols, int queryType, uint8_t *queryData, uint32_t queryDataSize, int trainRows, int trainCols, int trainType, uint8_t *trainData, uint32_t trainDataSize, uint32_t **matchIndices, uint32_t *matchIndicesSize, float ratio_thresh) {
   try {
-    cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
+    cv::Ptr<cv::flann::IndexParams> indexParams = cv::makePtr<cv::flann::LshIndexParams>(6, 12, 1); // instantiate LSH index parameters
+    cv::Ptr<cv::flann::SearchParams> searchParams = cv::makePtr<cv::flann::SearchParams>(50);       // instantiate flann search parameters
+    cv::Ptr<cv::DescriptorMatcher> matcher = new cv::FlannBasedMatcher(indexParams, searchParams);         // instantiate FlannBased matcher
+    
+    // cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
 
     std::cout << "cv 1 " << queryRows << " " << queryCols << " " << queryType << " " << queryDataSize << " " << trainRows << " " << trainCols << " " << trainType << " " << trainDataSize << std::endl;
 
