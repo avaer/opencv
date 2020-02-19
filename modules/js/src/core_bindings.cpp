@@ -527,7 +527,7 @@ EMSCRIPTEN_KEEPALIVE void doCv(int imageRows, int imageCols, int imageType, uint
       std::cout << "cv 8.3" << std::endl;
       *descriptorData = (uint8_t *)malloc(queryDescriptors.total() * queryDescriptors.elemSize());
       if (queryDescriptors.total() * queryDescriptors.elemSize() > 0) {
-        memcpy(descriptorData, queryDescriptors.data, queryDescriptors.total() * queryDescriptors.elemSize());
+        memcpy(*descriptorData, queryDescriptors.data, queryDescriptors.total() * queryDescriptors.elemSize());
       }
       std::cout << "cv 8.4 " << (void *)descriptorData << " " << (void *)descriptorDataSize << " " << queryDescriptors.total() << " " << queryDescriptors.elemSize()<< std::endl;
       *descriptorDataSize = queryDescriptors.total() * queryDescriptors.elemSize();
