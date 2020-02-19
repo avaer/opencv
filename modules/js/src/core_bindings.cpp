@@ -505,7 +505,6 @@ EMSCRIPTEN_KEEPALIVE void doMatchCvFeatures(int queryRows, int queryCols, int qu
   try {
     cv::Ptr<cv::flann::IndexParams> indexParams = cv::makePtr<cv::flann::LshIndexParams>(6, 12, 1); // instantiate LSH index parameters
     cv::Ptr<cv::flann::SearchParams> searchParams = cv::makePtr<cv::flann::SearchParams>(50);       // instantiate flann search parameters
-    cv::Ptr<cv::DescriptorMatcher> matcher = cv::makePtr<cv::flann::FlannBasedMatcher>(indexParams, searchParams);         // instantiate FlannBased matcher
     std::unique_ptr<cv::DescriptorMatcher> matcher = new cv::FlannBasedMatcher(indexParams, searchParams);
     // cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
 
