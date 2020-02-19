@@ -468,7 +468,7 @@ EMSCRIPTEN_KEEPALIVE void doComputeCvFeatures(int imageRows, int imageCols, int 
     int minHessian = 400;
     cv::Ptr<cv::xfeatures2d::SURF> detector = cv::xfeatures2d::SURF::create(minHessian);
     std::cout << "cv 3.1" << std::endl;
-    detector->detectAndCompute( inputImage2, cv::noArray(), queryKeypoints, queryDescriptors );
+    detector->detectAndCompute(inputImage2, cv::noArray(), queryKeypoints, queryDescriptors);
     std::cout << "cv 3.2" << std::endl; 
 
     {
