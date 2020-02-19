@@ -501,7 +501,7 @@ EMSCRIPTEN_KEEPALIVE void doComputeCvFeatures(int imageRows, int imageCols, int 
   }
   std::cout << "cv 10" << std::endl;
 }
-EMSCRIPTEN_KEEPALIVE void doMatchCvFeatures(int queryRows, int queryCols, int queryType, uint8_t *queryData, uint32_t queryDataSize, int trainRows, int trainCols, int trainType, uint8_t *trainData, uint32_t trainDataSize, uint32_t **matchIndices, uint32_t *matchIndicesSize) {
+EMSCRIPTEN_KEEPALIVE void doMatchCvFeatures(int queryRows, int queryCols, int queryType, uint8_t *queryData, uint32_t queryDataSize, int trainRows, int trainCols, int trainType, uint8_t *trainData, uint32_t trainDataSize, uint32_t **matchIndices, uint32_t *matchIndicesSize, float ratio_thresh) {
   try {
     cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
 
@@ -529,7 +529,6 @@ EMSCRIPTEN_KEEPALIVE void doMatchCvFeatures(int queryRows, int queryCols, int qu
       std::vector< std::vector<cv::DMatch> > knn_matches;
       matcher->knnMatch(queryDescriptors, trainDescriptors, knn_matches, 2);
 
-      const float ratio_thresh = 0.7f;
       for (size_t i = 0; i < knn_matches.size(); i++) {
         if (knn_matches[i][0].distance < ratio_thresh * knn_matches[i][1].distance) {
           matches.push_back(knn_matches[i][0]);
