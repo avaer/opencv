@@ -542,8 +542,8 @@ EMSCRIPTEN_KEEPALIVE void doMatchCvFeatures(int queryRows, int queryCols, int qu
     }
     
     {
-      *matchIndices = (float *)malloc(matches.size() * sizeof(uint32_t));
-      for (int i = 0; i < matches.size(); i++) {
+      *matchIndices = (uint32_t *)malloc(matches.size() * sizeof(uint32_t));
+      for (size_t i = 0; i < matches.size(); i++) {
         (*matchIndices)[i] = matches[i].queryIdx;
       }
       *matchIndicesSize = matches.size() * sizeof(uint32_t);
