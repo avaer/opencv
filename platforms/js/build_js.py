@@ -140,7 +140,7 @@ class Builder:
                "-DBUILD_PACKAGE=OFF",
                "-DBUILD_TESTS=OFF",
                "-DBUILD_PERF_TESTS=OFF",
-               "-DOPENCV_EXTRA_MODULES_PATH=/home/a/opencv/opencv_contrib/modules",
+               "-DOPENCV_EXTRA_MODULES_PATH=/Users/k/Documents/GitHub/opencv/opencv_contrib/modules",
                "-DOPENCV_ENABLE_NONFREE=ON"
                ]
         if self.options.cmake_option:
