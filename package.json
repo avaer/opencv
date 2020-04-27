@@ -1,0 +1,26 @@
+{
+  "name": "opencv",
+  "version": "0.0.1",
+  "description": "### Resources",
+  "main": "index.js",
+  "directories": {
+    "doc": "doc"
+  },
+  "dependencies": {
+    "pngjs": "^5.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/avaer/opencv.git"
+  },
+  "author": "Avaer Kazmer <a@modules.io>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/avaer/opencv/issues"
+  },
+  "homepage": "https://github.com/avaer/opencv#readme"
+}
