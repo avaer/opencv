@@ -1,5 +1,4 @@
 const fs = require('fs');
-// const b = opencv._doMalloc(160000);
 const PNG = require('pngjs').PNG;
 
 function Module(moduleName, moduleFn) {};
