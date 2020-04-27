@@ -802,19 +802,27 @@ void perspectiveDivideVector(float *v) {
   v[3] = 1.0f;
 }
 
-void getQr(int width, int height, unsigned char *imgData, float *viewMatrixInverse, float *projectionMatrixInverse, float *qrCodes, unsigned int &numQrCodes) {
+void getQr(int width, int height, unsigned char *imgData, float *viewMatrixInverse, float *projectionMatrixInverse, float *qrCodes, unsigned int &numQrCodes, char *qrCodeString, unsigned int &qrCodeStringLength) {
+    std::cerr << "thread 0 " << width << " " << height << " " << (void *)imgData << std::endl;
+
     cv::QRCodeDetector qrDecoder;
+
+    std::cerr << "thread 1 " << width << " " << height << " " << (void *)imgData << std::endl;
 
     cv::Mat inputImage(height, width, CV_8UC4, imgData);
 
+    std::cerr << "thread 2 " << (void *)imgData << std::endl;
+
     cv::Mat bbox, rectifiedImage;
 
+    std::cerr << "thread 3" << std::endl;
+
     std::string data = qrDecoder.detectAndDecode(inputImage, bbox, rectifiedImage);
-    std::cerr << "thread 9 " << data.length() << std::endl;
+    std::cerr << "thread 4 " << data << " " << bbox.type() << " " << CV_32FC2 << " " << bbox.rows << " " << bbox.cols << std::endl;
 
     numQrCodes = 0;
 
-    if (data.length() > 0 && bbox.type() == CV_32FC2 && bbox.rows == 4 && bbox.cols == 1) {
+    if (data.length() > 0) {
       std::cerr << "Decoded QR code: " << data << " " <<
         bbox.at<cv::Point2f>(0).x << " " << bbox.at<cv::Point2f>(0).y << " " <<
         bbox.at<cv::Point2f>(1).x << " " << bbox.at<cv::Point2f>(1).y << " " <<
@@ -840,6 +848,9 @@ void getQr(int width, int height, unsigned char *imgData, float *viewMatrixInver
         qrCodes[i*3+2] = worldPoint[2];
       }
       numQrCodes = 1;
+
+      memcpy(qrCodeString, data.data(), data.size());
+      qrCodeStringLength = data.size();
     }
 
   // getOut() << "thread 10 " << data.length() << std::endl;
@@ -974,8 +985,8 @@ EMSCRIPTEN_KEEPALIVE void doMatchCvFeatures(int queryRows, int queryCols, int qu
   }
   std::cout << "cv 10" << std::endl;
 }
-EMSCRIPTEN_KEEPALIVE void doGetQr(int width, int height, unsigned char *imgData, float *viewMatrixInverse, float *projectionMatrixInverse, float *qrCodes, unsigned int *numQrCodes) {
-    getQr(width, height, imgData, viewMatrixInverse, projectionMatrixInverse, qrCodes, *numQrCodes);
+EMSCRIPTEN_KEEPALIVE void doGetQr(int width, int height, unsigned char *imgData, float *viewMatrixInverse, float *projectionMatrixInverse, float *qrCodes, unsigned int *numQrCodes, char *qrCodeString, unsigned int *qrCodeStringLength) {
+    getQr(width, height, imgData, viewMatrixInverse, projectionMatrixInverse, qrCodes, *numQrCodes, qrCodeString, *qrCodeStringLength);
 }
 }
 
